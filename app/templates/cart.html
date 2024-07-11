@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Cart{% endblock %}
+{% block content %}
+    <h2>Your Cart</h2>
+    {% if cart.items %}
+        <ul>
+            {% for cart_item in cart.items %}
+                <li>
+                    <img src="{{ url_for('static', filename='images/' ~ cart_item.item.image_file) }}" alt="{{ cart_item.item.name }}" width="100">
+                    <p>{{ cart_item.item.name }} - Quantity: {{ cart_item.quantity }}</p>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Your cart is empty.</p>
+    {% endif %}
+{% endblock %}
