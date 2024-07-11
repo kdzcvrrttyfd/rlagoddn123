@@ -35,7 +35,7 @@ def create_app():
         while retries > 0:
             try:
                 inspector = inspect(db.engine)
-                if not inspector.has_table('user') or not inspector.has_table('item'):
+                if not inspector.has_table('user') or not inspector.has_table('item') or not inspector.has_table('cart') or not inspector.has_table('cartitem'):
                     db.create_all()
                 break
             except OperationalError as e:
