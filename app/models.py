@@ -40,3 +40,7 @@ class CartItem(db.Model):
     cart_id = db.Column(db.Integer, db.ForeignKey('cart.id'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False, default=1)
     item = db.relationship('Item')
+    
+class Image(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    url = db.Column(db.String(300), nullable=False)

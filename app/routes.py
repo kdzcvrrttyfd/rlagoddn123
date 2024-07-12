@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, url_for, flash, redirect, request
 from flask_login import login_user, current_user, logout_user, login_required
 from app import db, bcrypt
-from app.models import User, Item
+from app.models import User, Item ,Image
 from app.forms import RegistrationForm, LoginForm
 
 main = Blueprint('main', __name__)
@@ -10,7 +10,8 @@ users = Blueprint('users', __name__)
 @main.route('/')
 @main.route('/home')
 def home():
-    return render_template('index.html')
+    images = Image.query.all()
+    return render_template('index.html', images=images)
 
 @main.route('/fashion')
 def fashion():
