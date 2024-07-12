@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h1>Add a New Image</h1>
+    <form method="POST" action="{{ url_for('users.add_image') }}">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.url.label }}  <!-- 라벨 렌더링 -->
+            {{ form.url(class="form-control") }}  <!-- 필드 렌더링 -->
+        </div>
+        <div class="form-group">
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+</div>
+{% endblock %}

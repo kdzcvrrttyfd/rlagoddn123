@@ -42,5 +42,5 @@ class CartItem(db.Model):
     item = db.relationship('Item')
     
 class Image(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     url = db.Column(db.String(300), nullable=False)

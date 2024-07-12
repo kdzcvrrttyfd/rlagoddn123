@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField
-from wtforms.validators import DataRequired, Length, EqualTo, ValidationError
+from wtforms.validators import DataRequired, Length, EqualTo, ValidationError, URL
 from app.models import User
 
 class RegistrationForm(FlaskForm):
@@ -20,3 +20,7 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     remember = BooleanField('Remember Me')
     submit = SubmitField('Login')
+
+class ImageForm(FlaskForm):
+    url = StringField('Image URL', validators=[DataRequired(), URL()])
+    submit = SubmitField('Add Image')

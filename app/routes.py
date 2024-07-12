@@ -2,24 +2,30 @@ from flask import Blueprint, render_template, url_for, flash, redirect, request
 from flask_login import login_user, current_user, logout_user, login_required
 from app import db, bcrypt
 from app.models import User, Item ,Image
-from app.forms import RegistrationForm, LoginForm
-
+from app.forms import RegistrationForm, LoginForm, ImageForm
+import os
 main = Blueprint('main', __name__)
 users = Blueprint('users', __name__)
+def extract_filename(url):
+    filename = os.path.basename(url)
+    name, _ = os.path.splitext(filename)
+    return name
 
 @main.route('/')
 @main.route('/home')
 def home():
-    images = Image.query.all()
-    return render_template('index.html', images=images)
+    
+    return render_template('index.html')
 
 @main.route('/fashion')
 def fashion():
-    return render_template('fashion.html')
+    return render_template('it.html')
 
 @main.route('/electronic')
 def electronic():
-    return render_template('electronic.html')
+    images = Image.query.all()
+    images_with_filenames = [(image.url, extract_filename(image.url)) for image in images]
+    return render_template('infa.html', images=images_with_filenames)
 
 @main.route('/jewellery')
 def jewellery():
@@ -96,3 +102,14 @@ def search():
     query = request.args.get('query')
     items = Item.query.filter(Item.name.like(f'%{query}%')).all()
     return render_template('search_results.html', items=items, query=query)
+
+
+@users.route('/add_image', methods=['GET', 'POST'])
+def add_image():
+    form = ImageForm()
+    if form.validate_on_submit():
+        new_image = Image(url=form.url.data)
+        db.session.add(new_image)
+        db.session.commit()
+        return redirect(url_for('main.home'))
+    return render_template('add_image.html', form=form)
