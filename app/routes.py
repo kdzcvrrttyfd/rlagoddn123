@@ -4,6 +4,9 @@ from app import db, bcrypt
 from app.models import User, Item ,Image
 from app.forms import RegistrationForm, LoginForm, ImageForm
 import os
+from prometheus_client import Summary
+
+
 main = Blueprint('main', __name__)
 users = Blueprint('users', __name__)
 def extract_filename(url):
@@ -11,27 +14,36 @@ def extract_filename(url):
     name, _ = os.path.splitext(filename)
     return name
 
+# Create a metric to track time spent and requests made.
+REQUEST_TIME = Summary('request_processing_seconds', 'Time spent processing request')
+
+
 @main.route('/')
 @main.route('/home')
+@REQUEST_TIME.time()
 def home():
     
     return render_template('index.html')
 
 @main.route('/fashion')
+@REQUEST_TIME.time()
 def fashion():
     return render_template('it.html')
 
 @main.route('/electronic')
+@REQUEST_TIME.time()
 def electronic():
     images = Image.query.all()
     images_with_filenames = [(image.url, extract_filename(image.url)) for image in images]
     return render_template('infa.html', images=images_with_filenames)
 
 @main.route('/jewellery')
+@REQUEST_TIME.time()
 def jewellery():
     return render_template('jewellery.html')
 
 @users.route('/login', methods=['GET', 'POST'])
+@REQUEST_TIME.time()
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.home'))
@@ -47,6 +59,7 @@ def login():
     return render_template('login.html', form=form)
 
 @users.route('/register', methods=['GET', 'POST'])
+@REQUEST_TIME.time()
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.home'))
@@ -61,12 +74,14 @@ def register():
     return render_template('register.html', form=form)
 
 @users.route('/logout')
+@REQUEST_TIME.time()
 @login_required
 def logout():
     logout_user()
     return redirect(url_for('main.home'))
 
 @users.route('/cart')
+@REQUEST_TIME.time()
 @login_required
 def cart():
     # cart = current_user.cart
@@ -98,6 +113,7 @@ def cart():
 #     return redirect(url_for('main.home'))
 
 @main.route('/search')
+@REQUEST_TIME.time()
 def search():
     query = request.args.get('query')
     items = Item.query.filter(Item.name.like(f'%{query}%')).all()
@@ -105,6 +121,7 @@ def search():
 
 
 @users.route('/add_image', methods=['GET', 'POST'])
+@REQUEST_TIME.time()
 def add_image():
     form = ImageForm()
     if form.validate_on_submit():
