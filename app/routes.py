@@ -1,18 +1,42 @@
-from flask import Blueprint, render_template, url_for, flash, redirect, request
+from flask import Blueprint, render_template, url_for, flash, redirect, request,current_app
 from flask_login import login_user, current_user, logout_user, login_required
 from app import db, bcrypt
 from app.models import User, Item ,Image
 from app.forms import RegistrationForm, LoginForm, ImageForm
 import os
+import uuid
 from prometheus_client import Summary
-
-
+from google.cloud import storage
+# os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="tete-426803-fcea6282bee1.json"
 main = Blueprint('main', __name__)
 users = Blueprint('users', __name__)
 def extract_filename(url):
     filename = os.path.basename(url)
-    name, _ = os.path.splitext(filename)
-    return name
+    name, ext = os.path.splitext(filename)
+    # UUID 부분과 파일 이름 부분을 분리
+    original_name = "_".join(name.split('_')[1:])
+    return original_name
+
+def upload_to_gcs(file, bucket_name):
+    client = storage.Client.from_service_account_json(current_app.config['GOOGLE_APPLICATION_CREDENTIALS'])
+    bucket = client.bucket(bucket_name)
+    # 원래 파일 이름을 사용하여 새로운 파일 이름 생성
+    filename = file.filename
+    new_filename = f"{uuid.uuid4()}_{filename}"
+    blob = bucket.blob(f"images/{new_filename}")
+    blob.upload_from_file(file)
+    # 객체를 공개합니다.
+    blob.make_public()
+    return blob.public_url
+
+def delete_from_gcs(url):
+    client = storage.Client.from_service_account_json(current_app.config['GOOGLE_APPLICATION_CREDENTIALS'])
+    bucket_name = current_app.config['GCS_BUCKET_NAME']
+    bucket = client.bucket(bucket_name)
+    # URL에서 객체 이름 추출
+    object_name = url.split(f"https://storage.googleapis.com/{bucket_name}/")[-1]
+    blob = bucket.blob(object_name)
+    blob.delete()
 
 # Create a metric to track time spent and requests made.
 REQUEST_TIME = Summary('request_processing_seconds', 'Time spent processing request')
@@ -28,7 +52,10 @@ def home():
 @main.route('/fashion')
 @REQUEST_TIME.time()
 def fashion():
-    return render_template('it.html')
+    images = Image.query.all()
+    images_with_filenames = [(image.id, image.url, extract_filename(image.url)) for image in images]
+    return render_template('it.html', images=images_with_filenames)
+    
 
 @main.route('/electronic')
 @REQUEST_TIME.time()
@@ -120,13 +147,37 @@ def search():
     return render_template('search_results.html', items=items, query=query)
 
 
-@users.route('/add_image', methods=['GET', 'POST'])
-@REQUEST_TIME.time()
+# @users.route('/add_image', methods=['GET', 'POST'])
+# @REQUEST_TIME.time()
+# def add_image():
+#     form = ImageForm()
+#     if form.validate_on_submit():
+#         new_image = Image(url=form.url.data)
+#         db.session.add(new_image)
+#         db.session.commit()
+#         return redirect(url_for('main.home'))
+#     return render_template('add_image.html', form=form)
+
+@main.route('/add_image', methods=['GET', 'POST'])
+@login_required
 def add_image():
     form = ImageForm()
     if form.validate_on_submit():
-        new_image = Image(url=form.url.data)
+        file = form.image.data
+        url = upload_to_gcs(file, current_app.config['GCS_BUCKET_NAME'])
+        new_image = Image(url=url)
         db.session.add(new_image)
         db.session.commit()
+        flash('Image added successfully!', 'success')
         return redirect(url_for('main.home'))
-    return render_template('add_image.html', form=form)
+    return render_template('adi.html', form=form)
+
+@main.route('/delete_image/<int:image_id>', methods=['POST'])
+@login_required
+def delete_image(image_id):
+    image = Image.query.get_or_404(image_id)
+    delete_from_gcs(image.url)
+    db.session.delete(image)
+    db.session.commit()
+    flash('Image has been deleted!', 'success')
+    return redirect(url_for('main.home'))

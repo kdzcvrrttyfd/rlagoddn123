@@ -2,7 +2,25 @@
 {% block content %}
 
 <li class="nav-item">
-    <a class="nav-link" href="{{ url_for('users.add_image') }}">Add Image</a>
+    <a class="btn btn-primary btn-lg nav-link text-white" href="{{ url_for('main.add_image') }}">Add Image</a>
 </li>
-
+<div class="container mt-4">
+    <h1 class="fashion_taital">Man & Woman Fashion</h1>
+    <div class="fashion_section_2">
+        <div class="row">
+            {% for image_id, image_url, filename in images %}
+            <div class="col-lg-4 col-sm-4 mb-4">
+                <div class="box_main">
+                    <h4 class="shirt_text">{{ filename }}</h4>
+                    <div class="tshirt_img"><img src="{{ image_url }}" alt="Fashion Item" class="img-fluid"></div>
+                    <form method="POST" action="{{ url_for('main.delete_image', image_id=image_id) }}">
+                        <button type="submit" class="btn btn-danger mt-2">Delete</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
 {% endblock %}
+

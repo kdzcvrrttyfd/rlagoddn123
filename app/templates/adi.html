@@ -2,16 +2,15 @@
 {% block content %}
 <div class="container mt-4">
     <h1>Add a New Image</h1>
-    <form method="POST" action="{{ url_for('users.add_image') }}">
+    <form method="POST" action="{{ url_for('main.add_image') }}" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
         <div class="form-group">
-            {{ form.url.label }}  <!-- 라벨 렌더링 -->
-            {{ form.url(class="form-control") }}  <!-- 필드 렌더링 -->
+            {{ form.image.label }}
+            {{ form.image(class="form-control") }}
         </div>
         <div class="form-group">
             {{ form.submit(class="btn btn-primary") }}
         </div>
-        
     </form>
 </div>
 {% endblock %}
