@@ -18,7 +18,8 @@ def extract_filename(url):
     return original_name
 
 def upload_to_gcs(file, bucket_name):
-    client = storage.Client.from_service_account_json(current_app.config['GOOGLE_APPLICATION_CREDENTIALS'])
+    client = storage.Client()
+    # client = storage.Client.from_service_account_json(current_app.config['GOOGLE_APPLICATION_CREDENTIALS'])
     bucket = client.bucket(bucket_name)
     # 원래 파일 이름을 사용하여 새로운 파일 이름 생성
     filename = file.filename
@@ -30,7 +31,8 @@ def upload_to_gcs(file, bucket_name):
     return blob.public_url
 
 def delete_from_gcs(url):
-    client = storage.Client.from_service_account_json(current_app.config['GOOGLE_APPLICATION_CREDENTIALS'])
+    client = storage.Client()
+    # client = storage.Client.from_service_account_json(current_app.config['GOOGLE_APPLICATION_CREDENTIALS'])
     bucket_name = current_app.config['GCS_BUCKET_NAME']
     bucket = client.bucket(bucket_name)
     # URL에서 객체 이름 추출

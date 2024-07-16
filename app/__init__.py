@@ -29,7 +29,7 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = 'uploads'
     app.config['GCS_BUCKET_NAME'] = os.getenv('GCS_BUCKET_NAME')
-    app.config['GOOGLE_APPLICATION_CREDENTIALS'] = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+    # app.config['GOOGLE_APPLICATION_CREDENTIALS'] = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
     
     metrics = PrometheusMetrics(app)
     db.init_app(app)
@@ -56,6 +56,10 @@ def create_app():
         IN_PROGRESS.dec()  # Decrement the gauge
         return response
 
+    # Google Cloud Credentials
+    google_credentials_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+    if google_credentials_path:
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = google_credentials_path
     with app.app_context():
         retries = 5
         while retries > 0:
