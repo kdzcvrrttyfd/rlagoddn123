@@ -39,10 +39,8 @@ pipeline {
                 }
             }
         }
-    }
-}
 
-   // 4. GKE 클러스터에 배포
+        // 4. GKE 클러스터에 배포
         stage('Deploy to GKE') {
             steps {
                 script {
@@ -59,4 +57,5 @@ pipeline {
         }
     }
 }
+
 
