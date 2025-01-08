@@ -7,13 +7,17 @@ pipeline {
         DOCKER_REGISTRY = 'docker.io/rlaekdh12345'
         DOCKER_IMAGE_NAME = 'qudwndh/shop'
         K8S_MANIFESTS_REPO = 'https://github.com/kdzcvrrttyfd/k8s-manifests.git'
-        K8S_MANIFEST_PATH = 'kubernetes/manifests'
+        K8S_MANIFEST_PATH = '~/3tier/was' // 수정된 경로
         DOCKER_TAG = "${env.BUILD_ID}"
 
         // GKE 클러스터 정보
         GKE_PROJECT_ID = 'sidfjg'
         GKE_CLUSTER_NAME = 'kor-cluster'
         GKE_CLUSTER_ZONE = 'asia-northeast3' // 예: asia-northeast3
+
+        // Docker Hub 계정 정보
+        DOCKER_USERNAME = 'rlaekdh12345'
+        DOCKER_PASSWORD = 'rlagoddn123'
     }
 
     stages {
@@ -26,6 +30,17 @@ pipeline {
                     dir('k8s-manifests') {
                         git branch: 'main', url: "${K8S_MANIFESTS_REPO}"
                     }
+                }
+            }
+        }
+
+        stage('Docker Login') {
+            steps {
+                script {
+                    // Docker 레지스트리에 로그인
+                    sh """
+                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                    """
                 }
             }
         }
@@ -68,7 +83,7 @@ pipeline {
                 script {
                     // GKE 인증 및 클러스터 컨텍스트 설정
                     sh """
-                        gcloud auth activate-service-account --key-file=/path/to/your/service-account-key.json
+                        gcloud auth activate-service-account --key-file=~/sidfjg-e6d6a9e59022.json
                         gcloud container clusters get-credentials ${GKE_CLUSTER_NAME} --zone ${GKE_CLUSTER_ZONE} --project ${GKE_PROJECT_ID}
                     """
                     // Kubernetes 클러스터에 새 매니페스트 배포
@@ -92,4 +107,5 @@ pipeline {
         }
     }
 }
+
 
