@@ -7,26 +7,29 @@ pipeline {
         DOCKER_REGISTRY = 'docker.io/rlaekdh12345'
         DOCKER_IMAGE_NAME = 'rlagoddn/shop'
         K8S_MANIFESTS_REPO = 'https://github.com/kdzcvrrttyfd/k8s-manifests.git'
-        K8S_MANIFEST_PATH = '3tier/was/flask-deployment.yaml' // 수정된 경로
+        K8S_MANIFEST_PATH = '3tier/was/flask-deployment.yaml'
         DOCKER_TAG = "${env.BUILD_ID}"
 
         // GKE 클러스터 정보
         GKE_PROJECT_ID = 'sdfasdf-429612'
         GKE_CLUSTER_NAME = 'kor-cluster'
-        GKE_CLUSTER_ZONE = 'asia-northeast3' // 예: asia-northeast3
+        GKE_CLUSTER_ZONE = 'asia-northeast3'
 
         // Docker Hub 계정 정보
         DOCKER_USERNAME = 'rlaekdh12345'
         DOCKER_PASSWORD = 'rlagoddn123'
+
+        // GitHub Credentials
+        GITHUB_USERNAME = 'kdzcvrrttyfd'
+        GITHUB_TOKEN = 'your-github-token' // Jenkins Credentials 추천
     }
 
     stages {
         stage('Checkout GitHub Repos') {
             steps {
                 script {
-                    // Jenkins 작업 공간으로 소스 코드 체크아웃
-                    checkout scm
-                    // Kubernetes 매니페스트 저장소 별도 체크아웃
+                    checkout([$class: 'GitSCM', branches: [[name: '*/main']],
+                        userRemoteConfigs: [[url: "${GITHUB_REPO}", credentialsId: 'github-creds']]])
                     dir('k8s-manifests') {
                         git branch: 'main', url: "${K8S_MANIFESTS_REPO}"
                     }
@@ -37,7 +40,6 @@ pipeline {
         stage('Docker Login') {
             steps {
                 script {
-                    // Docker 레지스트리에 로그인
                     sh """
                         echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
                     """
@@ -48,7 +50,6 @@ pipeline {
         stage('Build and Push Docker Image') {
             steps {
                 script {
-                    // Docker 이미지 빌드 및 레지스트리에 푸시
                     sh """
                         docker build -t ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG} .
                         docker push ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
@@ -60,18 +61,15 @@ pipeline {
         stage('Update Kubernetes Manifest') {
             steps {
                 script {
-                    // Kubernetes 매니페스트 파일에서 Docker 이미지 태그 업데이트
                     dir('k8s-manifests') {
                         sh """
                             sed -i 's|image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:.*|image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}|' ${K8S_MANIFEST_PATH}
-                        """
-                        // 변경된 매니페스트 파일을 GitHub에 푸시
-                        sh """
+                            kubectl apply --dry-run=client -f ${K8S_MANIFEST_PATH} # 매니페스트 검증
                             git config --global user.email "rlaekdh12345@gmail.com"
                             git config --global user.name "kdzcvrrttyfd"
                             git add ${K8S_MANIFEST_PATH}
                             git commit -m "Update Docker image tag to ${DOCKER_TAG}"
-                            git push origin main
+                            git push https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/kdzcvrrttyfd/k8s-manifests.git main
                         """
                     }
                 }
@@ -81,17 +79,11 @@ pipeline {
         stage('Deploy to GKE') {
             steps {
                 script {
-                    // GKE 인증 및 클러스터 컨텍스트 설정
                     sh """
                         gcloud auth activate-service-account --key-file=~/sdfasdf-429612-dd4349f4992b.json
                         gcloud container clusters get-credentials ${GKE_CLUSTER_NAME} --zone ${GKE_CLUSTER_ZONE} --project ${GKE_PROJECT_ID}
+                        kubectl apply -f ${K8S_MANIFEST_PATH}
                     """
-                    // Kubernetes 클러스터에 새 매니페스트 배포
-                    dir('k8s-manifests') {
-                        sh """
-                            kubectl apply -f ${K8S_MANIFEST_PATH}
-                        """
-                    }
                 }
             }
         }
@@ -107,6 +99,7 @@ pipeline {
         }
     }
 }
+
 
 
 
