@@ -3,10 +3,10 @@ pipeline {
 
     environment {
         // GitHub 저장소 및 Docker 레지스트리 정보
-        GITHUB_REPO = '<https://github.com/kdzcvrrttyfd/rlagoddn123.git>'
+        GITHUB_REPO = 'https://github.com/kdzcvrrttyfd/rlagoddn123.git'
         DOCKER_REGISTRY = 'docker.io/rlaekdh12345'
         DOCKER_IMAGE_NAME = 'rlagoddn/shop'
-        K8S_MANIFESTS_REPO = '<https://github.com/kdzcvrrttyfd/k8s-manifests.git>'
+        K8S_MANIFESTS_REPO = 'https://github.com/kdzcvrrttyfd/k8s-manifests.git'
         K8S_MANIFEST_PATH = '3tier/was/flask-deployment.yaml' // 수정된 경로
         DOCKER_TAG = "${env.BUILD_ID}"
 
