@@ -18,10 +18,6 @@ pipeline {
         // Docker Hub 계정 정보
         DOCKER_USERNAME = 'rlaekdh12345'
         DOCKER_PASSWORD = 'rlagoddn123'
-
-        // GitHub Credentials
-        GITHUB_USERNAME = 'kdzcvrrttyfd'
-        GITHUB_TOKEN = 'your-github-token' // Jenkins Credentials 추천
     }
 
     stages {
