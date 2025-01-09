@@ -7,7 +7,7 @@ pipeline {
         DOCKER_REGISTRY = 'docker.io/rlaekdh12345'
         DOCKER_IMAGE_NAME = 'rlagoddn/shop'
         K8S_MANIFESTS_REPO = 'https://github.com/kdzcvrrttyfd/k8s-manifests.git'
-        K8S_MANIFEST_PATH = '3tier/was/flask-deployment.yaml' // 수정된 경로
+        K8S_MANIFEST_PATH = 'flask-deployment.yaml' // 수정된 경로
         DOCKER_TAG = "${env.BUILD_ID}"
 
         // GKE 클러스터 정보
@@ -65,13 +65,13 @@ pipeline {
                     // Kubernetes 매니페스트 파일에서 Docker 이미지 태그 업데이트
                     dir('k8s-manifests') {
                         sh """
-                            sed -i 's|image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:.*|image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}|' ${K8S_MANIFEST_PATH}/deployment.yaml
+                            sed -i 's|image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:.*|image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}|' ${K8S_MANIFEST_PATH}
                         """
                         // 변경된 매니페스트 파일을 GitHub에 푸시
                         sh """
                             git config --global user.email "rlaekdh12345@gmail.com"
                             git config --global user.name "kdzcvrrttyfd"
-                            git add ${K8S_MANIFEST_PATH}/deployment.yaml
+                            git add ${K8S_MANIFEST_PATH}
                             git commit -m "Update Docker image tag to ${DOCKER_TAG}"
                             git push origin main
                         """
@@ -91,7 +91,7 @@ pipeline {
                     // Kubernetes 클러스터에 새 매니페스트 배포
                     dir('k8s-manifests') {
                         sh """
-                            kubectl apply -f ${K8S_MANIFEST_PATH}/deployment.yaml
+                            kubectl apply -f ${K8S_MANIFEST_PATH}
                         """
                     }
                 }
@@ -109,6 +109,7 @@ pipeline {
         }
     }
 }
+
 
 
 
