@@ -11,7 +11,7 @@ pipeline {
         DOCKER_TAG = "${env.BUILD_ID}"
 
         // GKE 클러스터 정보
-        GKE_PROJECT_ID = 'sdfasdf-429612'
+        GKE_PROJECT_ID = 'dfasd-430211'
         GKE_CLUSTER_NAME = 'kor-cluster'
         GKE_CLUSTER_ZONE = 'asia-northeast3'
 
@@ -24,8 +24,11 @@ pipeline {
         stage('Checkout GitHub Repos') {
             steps {
                 script {
+                    // GitHub 리포지토리에서 코드 체크아웃
                     checkout([$class: 'GitSCM', branches: [[name: '*/main']],
-                        userRemoteConfigs: [[url: "${GITHUB_REPO}", credentialsId: 'github-creds']]])
+                        userRemoteConfigs: [[url: "${GITHUB_REPO}", credentialsId: 'rlagoddn123']]])
+
+                    // k8s-manifests 리포지토리 체크아웃
                     dir('k8s-manifests') {
                         git branch: 'main', url: "${K8S_MANIFESTS_REPO}"
                     }
@@ -76,7 +79,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                        gcloud auth activate-service-account --key-file=~/sdfasdf-429612-dd4349f4992b.json
+                        gcloud auth activate-service-account --key-file=~/dfasd-430211-da71ce2048a5.json
                         gcloud container clusters get-credentials ${GKE_CLUSTER_NAME} --zone ${GKE_CLUSTER_ZONE} --project ${GKE_PROJECT_ID}
                         kubectl apply -f ${K8S_MANIFEST_PATH}
                     """
@@ -95,6 +98,7 @@ pipeline {
         }
     }
 }
+
 
 
 
