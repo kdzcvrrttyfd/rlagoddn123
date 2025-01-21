@@ -64,7 +64,7 @@ pipeline {
                     git branch: "main",
                         credentialsId: githubCredential,
                         url: '<https://github.com/skarltjr/kube-manifests.git>'
-                    sh "sed -i 's/k8s:.*\\$/k8s:${currentBuild.number}/' deployment.yaml"
+                    sh "sed -i 's/k8s:.*\\\$/k8s:${currentBuild.number}/' deployment.yaml"
                     sh "git add deployment.yaml"
                     sh "git commit -m '[UPDATE] k8s ${currentBuild.number} image versioning'"
                     withCredentials([gitUsernamePassword(credentialsId: githubCredential,
