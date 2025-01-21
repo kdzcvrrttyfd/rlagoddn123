@@ -23,8 +23,8 @@ pipeline {
         }
         stage('docker image build') {
             steps {
-                sh "docker build . -t ${dockerHubRegistry}:${currentBuild.number}"
-                sh "docker build . -t ${dockerHubRegistry}:latest"
+                bat "docker build . -t ${dockerHubRegistry}:${currentBuild.number}"
+                bat "docker build . -t ${dockerHubRegistry}:latest"
             }
             post {
                 failure {
@@ -38,39 +38,39 @@ pipeline {
         stage('Docker Image Push') {
             steps {
                 withDockerRegistry([credentialsId: dockerHubRegistryCredential, url: ""]) {
-                    sh "docker push ${dockerHubRegistry}:${currentBuild.number}"
-                    sh "docker push ${dockerHubRegistry}:latest"
-                    sleep 10 /* Wait uploading */
+                    bat "docker push ${dockerHubRegistry}:${currentBuild.number}"
+                    bat "docker push ${dockerHubRegistry}:latest"
+                    bat "timeout /t 10 >nul" /* Wait uploading */
                 }
             }
             post {
                 failure {
                     echo 'Docker Image Push failure!'
-                    sh "docker rmi ${dockerHubRegistry}:${currentBuild.number}"
-                    sh "docker rmi ${dockerHubRegistry}:latest"
+                    bat "docker rmi ${dockerHubRegistry}:${currentBuild.number}"
+                    bat "docker rmi ${dockerHubRegistry}:latest"
                 }
                 success {
                     echo 'Docker image push success!'
-                    sh "docker rmi ${dockerHubRegistry}:${currentBuild.number}"
-                    sh "docker rmi ${dockerHubRegistry}:latest"
+                    bat "docker rmi ${dockerHubRegistry}:${currentBuild.number}"
+                    bat "docker rmi ${dockerHubRegistry}:latest"
                 }
             }
         }
         stage('K8S Manifest Update') {
             steps {
-                sh "ls"
-                sh 'mkdir -p gitOpsRepo'
+                bat "dir"
+                bat 'mkdir gitOpsRepo'
                 dir("gitOpsRepo") {
                     git branch: "main",
                         credentialsId: githubCredential,
                         url: '<https://github.com/skarltjr/kube-manifests.git>'
-                    sh "sed -i 's/k8s:.*\\\$/k8s:${currentBuild.number}/' deployment.yaml"
-                    sh "git add deployment.yaml"
-                    sh "git commit -m '[UPDATE] k8s ${currentBuild.number} image versioning'"
+                    bat "powershell -Command \"(Get-Content deployment.yaml) -replace 'k8s:.*$', 'k8s:${currentBuild.number}' | Set-Content deployment.yaml\""
+                    bat "git add deployment.yaml"
+                    bat "git commit -m \"[UPDATE] k8s ${currentBuild.number} image versioning\""
                     withCredentials([gitUsernamePassword(credentialsId: githubCredential,
                                                          gitToolName: 'git-tool')]) {
-                        sh "git remote set-url origin <https://github.com/skarltjr/kube-manifests>"
-                        sh "git push -u origin main"
+                        bat "git remote set-url origin <https://github.com/skarltjr/kube-manifests>"
+                        bat "git push -u origin main"
                     }
                 }
             }
@@ -85,6 +85,7 @@ pipeline {
         }
     }
 }
+
 
 
 
