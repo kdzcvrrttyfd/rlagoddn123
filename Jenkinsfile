@@ -64,7 +64,7 @@ pipeline {
                     git branch: "main",
                         credentialsId: githubCredential,
                         url: '<https://github.com/skarltjr/kube-manifests.git>'
-                    bat "powershell -Command \"(Get-Content deployment.yaml) -replace 'k8s:.*$', 'k8s:${currentBuild.number}' | Set-Content deployment.yaml\""
+                    bat "powershell -Command \"(Get-Content deployment.yaml) -replace 'k8s:.*\\$', 'k8s:${currentBuild.number}' | Set-Content deployment.yaml\""
                     bat "git add deployment.yaml"
                     bat "git commit -m \"[UPDATE] k8s ${currentBuild.number} image versioning\""
                     withCredentials([gitUsernamePassword(credentialsId: githubCredential,
@@ -85,6 +85,7 @@ pipeline {
         }
     }
 }
+
 
 
 
