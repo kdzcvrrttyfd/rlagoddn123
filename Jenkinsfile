@@ -4,7 +4,8 @@ pipeline {
     environment {
         dockerHubRegistry = 'rlaekdh12345/docker' // dockerHub에 repository 명
         dockerHubRegistryCredential = 'docker-hub' // Jenkins에서 생성한 dockerhub-credential-ID값
-        githubCredential = 'github' // Jenkins에서 생성한 github-credential-ID값
+        githubCredential = 'docker-hub1' // Jenkins에서 생성한 github-credential-ID값
+        k8sRepoUrl = 'https://github.com/kdzcvrrttyfd/k8s-manifests.git' // 수정된 Git 레포지토리 URL
     }
 
     stages {
@@ -71,16 +72,16 @@ pipeline {
                 dir("gitOpsRepo") {
                     git branch: "main",
                         credentialsId: githubCredential,
-                        url: '<https://github.com/dongjucloud/kube-manifests.git>'
-                    sh "git config --global user.email dongju08@naver.com"
-                    sh "git config --global user.name dongjucloud"
+                        url: k8sRepoUrl // 수정된 URL 사용
+                    sh "git config --global user.email 'rlatkd1089@naver.com'" // 수정된 이메일
+                    sh "git config --global user.name 'rlagoddn123'" // 수정된 사용자 이름
                     // 배포될 때마다 버전이 올라야 하므로, deployment.yaml에서 이미지 버전을 업데이트
                     sh "sed -i 's/docker:.*\\$/docker:${currentBuild.number}/' deployment.yaml"
                     sh "git add deployment.yaml"
                     sh "git commit -m '[UPDATE] k8s ${currentBuild.number} image versioning'"
                     withCredentials([gitUsernamePassword(credentialsId: githubCredential,
                                                          gitToolName: 'git-tool')]) {
-                        sh "git remote set-url origin <https://github.com/dongjucloud/kube-manifests>"
+                        sh "git remote set-url origin ${k8sRepoUrl}"
                         sh "git push -u origin main"
                     }
                 }
@@ -96,6 +97,7 @@ pipeline {
         }
     }
 }
+
 
 
 
