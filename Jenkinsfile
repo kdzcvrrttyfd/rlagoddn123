@@ -76,7 +76,7 @@ pipeline {
                     sh "git config --global user.email 'rlatkd1089@naver.com'" // 수정된 이메일
                     sh "git config --global user.name 'rlagoddn123'" // 수정된 사용자 이름
                     // 배포될 때마다 버전이 올라야 하므로, deployment.yaml에서 이미지 버전을 업데이트
-                    sh "sed -i \"s/docker:.*\\$/docker:${currentBuild.number}/\" deployment.yaml"
+                    sh "sed -i 's/docker:.*\\$/docker:${currentBuild.number}/' deployment.yaml"
                     sh "git add deployment.yaml"
                     sh "git commit -m '[UPDATE] k8s ${currentBuild.number} image versioning'"
                     withCredentials([gitUsernamePassword(credentialsId: githubCredential,
