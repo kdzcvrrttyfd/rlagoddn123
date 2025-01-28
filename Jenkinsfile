@@ -1,11 +1,11 @@
-pipeline {
+eline {
     agent any
 
     environment {
-        dockerHubRegistry = 'rlaekdh12345/docker' // dockerHub과 교통할 버전
-        dockerHubRegistryCredential = 'docker-hub' // Docker Hub 인증 번호 ID
-        githubCredential = 'github' // GitHub 인증 번호 ID
-        k8sRepoUrl = 'https://github.com/kdzcvrrttyfd/k8s-manifests.git' // Kubernetes manifests 번개에 사용할 Git URL
+        dockerHubRegistry = 'rlaekdh12345/docker' // Docker Hub 레지스트리 경로
+        dockerHubRegistryCredential = 'docker-hub' // Docker Hub 인증 ID
+        githubCredential = 'github' // GitHub 인증 ID
+        k8sRepoUrl = 'https://github.com/kdzcvrrttyfd/k8s-manifests.git' // Kubernetes manifests Git URL
     }
 
     stages {
@@ -46,7 +46,7 @@ pipeline {
                 withDockerRegistry([credentialsId: dockerHubRegistryCredential, url: ""]) {
                     sh "docker push ${dockerHubRegistry}:${currentBuild.number}"
                     sh "docker push ${dockerHubRegistry}:latest"
-                    sleep 10 // Wait for upload
+                    sleep 10 // 업로드 대기
                 }
             }
             post {
@@ -63,23 +63,24 @@ pipeline {
             }
         }
 
-        // 4. Kubernetes 번개에 이미지 버전 갱신
+        // 4. Kubernetes manifests 업데이트
         stage('K8S Manifest Update') {
             steps {
-                sh "ls"
                 sh 'mkdir -p gitOpsRepo'
                 dir("gitOpsRepo") {
                     git branch: "main",
                         credentialsId: githubCredential,
                         url: k8sRepoUrl
+                    
                     sh "git config --global user.email 'rlaekdh12345@gmail.com'"
                     sh "git config --global user.name 'kdzcvrrttyfd'"
-                    // deployment.yaml 중 docker 이미지 버전값 반영
+
+                    // deployment.yaml에서 docker 이미지 버전 업데이트
                     sh 'sed -i "s/docker:.*$/docker:${currentBuild.number}/" deployment.yaml'
                     sh "git add deployment.yaml"
                     sh "git commit -m '[UPDATE] k8s ${currentBuild.number} image versioning'"
-                    withCredentials([gitUsernamePassword(credentialsId: githubCredential,
-                                                         gitToolName: 'git-tool')]) {
+
+                    withCredentials([gitUsernamePassword(credentialsId: githubCredential, gitToolName: 'git-tool')]) {
                         sh "git remote set-url origin ${k8sRepoUrl}"
                         sh "git push -u origin main"
                     }
@@ -96,7 +97,6 @@ pipeline {
         }
     }
 }
-
 
 
 
