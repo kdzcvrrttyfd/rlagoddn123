@@ -72,8 +72,8 @@ pipeline {
                     git branch: "main",
                         credentialsId: githubCredential,
                         url: k8sRepoUrl
-                    sh "git config --global user.email 'rlatkd1089@naver.com'"
-                    sh "git config --global user.name 'rlagoddn123'"
+                    sh "git config --global user.email 'rlaekdh12345@gmail.com'"
+                    sh "git config --global user.name 'kdzcvrrttyfd'"
                     // deployment.yaml 중 docker 이미지 버전값 반영
                     sh 'sed -i "s/docker:.*$/docker:${currentBuild.number}/" deployment.yaml'
                     sh "git add deployment.yaml"
