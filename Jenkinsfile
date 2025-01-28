@@ -4,7 +4,7 @@ pipeline {
     environment {
         dockerHubRegistry = 'rlaekdh12345/docker' // dockerHub에 repository 명
         dockerHubRegistryCredential = 'docker-hub' // Jenkins에서 생성한 dockerhub-credential-ID값
-        githubCredential = 'docker-hub1' // Jenkins에서 생성한 github-credential-ID값
+        githubCredential = 'github' // Jenkins에서 생성한 github-credential-ID값
         k8sRepoUrl = 'https://github.com/kdzcvrrttyfd/k8s-manifests.git' // 수정된 Git 레포지토리 URL
     }
 
