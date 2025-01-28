@@ -2,14 +2,14 @@ pipeline {
     agent any
 
     environment {
-        dockerHubRegistry = 'rlaekdh12345/docker' // dockerHub에 repository 명
-        dockerHubRegistryCredential = 'docker-hub' // Jenkins에서 생성한 dockerhub-credential-ID값
-        githubCredential = 'github' // Jenkins에서 생성한 github-credential-ID값
-        k8sRepoUrl = 'https://github.com/kdzcvrrttyfd/k8s-manifests.git' // 수정된 Git 레포지토리 URL
+        dockerHubRegistry = 'rlaekdh12345/docker' // dockerHub과 교통할 버전
+        dockerHubRegistryCredential = 'docker-hub' // Docker Hub 인증 번호 ID
+        githubCredential = 'github' // GitHub 인증 번호 ID
+        k8sRepoUrl = 'https://github.com/kdzcvrrttyfd/k8s-manifests.git' // Kubernetes manifests 번개에 사용할 Git URL
     }
 
     stages {
-        // 1. git repository 체크
+        // 1. Git repository 체크
         stage('Check Out Application Git Branch') {
             steps {
                 checkout scm
@@ -27,7 +27,6 @@ pipeline {
         // 2. Dockerfile 빌드
         stage('Docker Image Build') {
             steps {
-                // Dockerfile을 이용하여 이미지를 빌드
                 sh "docker build . -t ${dockerHubRegistry}:${currentBuild.number}"
                 sh "docker build . -t ${dockerHubRegistry}:latest"
             }
@@ -41,7 +40,7 @@ pipeline {
             }
         }
 
-        // 3. 빌드된 Docker 이미지 푸시
+        // 3. 빌드된 Docker 이미지 push
         stage('Docker Image Push') {
             steps {
                 withDockerRegistry([credentialsId: dockerHubRegistryCredential, url: ""]) {
@@ -64,7 +63,7 @@ pipeline {
             }
         }
 
-        // 4. K8S 매니페스트 업데이트
+        // 4. Kubernetes 번개에 이미지 버전 갱신
         stage('K8S Manifest Update') {
             steps {
                 sh "ls"
@@ -72,11 +71,11 @@ pipeline {
                 dir("gitOpsRepo") {
                     git branch: "main",
                         credentialsId: githubCredential,
-                        url: k8sRepoUrl // 수정된 URL 사용
-                    sh "git config --global user.email 'rlatkd1089@naver.com'" // 수정된 이메일
-                    sh "git config --global user.name 'rlagoddn123'" // 수정된 사용자 이름
-                    // 배포될 때마다 버전이 올라야 하므로, deployment.yaml에서 이미지 버전을 업데이트
-                    sh "sed -i \\"s/docker:.*\\\\$/docker:${currentBuild.number}/\\" deployment.yaml"
+                        url: k8sRepoUrl
+                    sh "git config --global user.email 'rlatkd1089@naver.com'"
+                    sh "git config --global user.name 'rlagoddn123'"
+                    // deployment.yaml 중 docker 이미지 버전값 반영
+                    sh 'sed -i "s/docker:.*$/docker:${currentBuild.number}/" deployment.yaml'
                     sh "git add deployment.yaml"
                     sh "git commit -m '[UPDATE] k8s ${currentBuild.number} image versioning'"
                     withCredentials([gitUsernamePassword(credentialsId: githubCredential,
@@ -97,6 +96,7 @@ pipeline {
         }
     }
 }
+
 
 
 
