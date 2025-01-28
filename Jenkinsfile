@@ -2,14 +2,14 @@ pipeline {
     agent any
 
     environment {
-        dockerHubRegistry = 'rlaekdh12345/docker' // Docker Hub 레지스트리 경로
-        dockerHubRegistryCredential = 'docker-hub' // Docker Hub 인증 ID
-        githubCredential = 'github' // GitHub 인증 ID
-        k8sRepoUrl = 'https://github.com/kdzcvrrttyfd/k8s-manifests.git' // Kubernetes manifests Git URL
+        dockerHubRegistry = 'rlaekdh12345/docker' 
+        dockerHubRegistryCredential = 'docker-hub' 
+        githubCredential = 'github' 
+        k8sRepoUrl = 'https://github.com/kdzcvrrttyfd/k8s-manifests.git' 
+        BUILD_NUMBER = "${currentBuild.number}"
     }
 
     stages {
-        // 1. Git repository 체크
         stage('Check Out Application Git Branch') {
             steps {
                 checkout scm
@@ -24,10 +24,9 @@ pipeline {
             }
         }
 
-        // 2. Dockerfile 빌드
         stage('Docker Image Build') {
             steps {
-                sh "docker build . -t ${dockerHubRegistry}:${currentBuild.number}"
+                sh "docker build . -t ${dockerHubRegistry}:${BUILD_NUMBER}"
                 sh "docker build . -t ${dockerHubRegistry}:latest"
             }
             post {
@@ -40,30 +39,28 @@ pipeline {
             }
         }
 
-        // 3. 빌드된 Docker 이미지 push
         stage('Docker Image Push') {
             steps {
                 withDockerRegistry([credentialsId: dockerHubRegistryCredential, url: ""]) {
-                    sh "docker push ${dockerHubRegistry}:${currentBuild.number}"
+                    sh "docker push ${dockerHubRegistry}:${BUILD_NUMBER}"
                     sh "docker push ${dockerHubRegistry}:latest"
-                    sleep 10 // 업로드 대기
+                    sleep 10
                 }
             }
             post {
                 failure {
                     echo 'Docker image push failure!'
-                    sh "docker rmi ${dockerHubRegistry}:${currentBuild.number}"
+                    sh "docker rmi ${dockerHubRegistry}:${BUILD_NUMBER}"
                     sh "docker rmi ${dockerHubRegistry}:latest"
                 }
                 success {
                     echo 'Docker image push success!'
-                    sh "docker rmi ${dockerHubRegistry}:${currentBuild.number}"
+                    sh "docker rmi ${dockerHubRegistry}:${BUILD_NUMBER}"
                     sh "docker rmi ${dockerHubRegistry}:latest"
                 }
             }
         }
 
-        // 4. Kubernetes manifests 업데이트
         stage('K8S Manifest Update') {
             steps {
                 sh 'mkdir -p gitOpsRepo'
@@ -71,18 +68,22 @@ pipeline {
                     git branch: "main",
                         credentialsId: githubCredential,
                         url: k8sRepoUrl
-                    
-                    sh "git config --global user.email 'rlaekdh12345@gmail.com'"
-                    sh "git config --global user.name 'kdzcvrrttyfd'"
 
-                    // deployment.yaml에서 docker 이미지 버전 업데이트
-                    sh 'sed -i "s/docker:.*$/docker:${currentBuild.number}/" deployment.yaml'
-                    sh "git add deployment.yaml"
-                    sh "git commit -m '[UPDATE] k8s ${currentBuild.number} image versioning'"
+                    sh '''
+                    #!/bin/bash
+                    git config --global user.email 'rlaekdh12345@gmail.com'
+                    git config --global user.name 'kdzcvrrttyfd'
+                    sed -i "s/docker:.*$/docker:${BUILD_NUMBER}/" deployment.yaml
+                    git add deployment.yaml
+                    git commit -m '[UPDATE] k8s ${BUILD_NUMBER} image versioning'
+                    '''
 
-                    withCredentials([gitUsernamePassword(credentialsId: githubCredential, gitToolName: 'git-tool')]) {
-                        sh "git remote set-url origin ${k8sRepoUrl}"
-                        sh "git push -u origin main"
+                    withCredentials([usernamePassword(credentialsId: githubCredential, usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                        sh '''
+                        #!/bin/bash
+                        git remote set-url origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/kdzcvrrttyfd/k8s-manifests.git
+                        git push -u origin main
+                        '''
                     }
                 }
             }
@@ -97,6 +98,7 @@ pipeline {
         }
     }
 }
+
 
 
 
