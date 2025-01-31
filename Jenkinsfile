@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     environment {
-        dockerHubRegistry = 'rlaekdh12345/docker' 
-        dockerHubRegistryCredential = 'docker-hub' 
-        githubCredential = 'github' 
-        k8sRepoUrl = 'https://github.com/kdzcvrrttyfd/k8s-manifests.git' 
+        dockerHubRegistry = 'rlaekdh12345/docker'
+        dockerHubRegistryCredential = 'docker-hub'
+        githubCredential = 'github'
+        k8sRepoUrl = 'https://github.com/kdzcvrrttyfd/k8s-manifests.git'
         BUILD_NUMBER = "${currentBuild.number}"
     }
 
@@ -98,6 +98,7 @@ pipeline {
         }
     }
 }
+
 
 
 
