@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        dockerHubRegistry = 'rlaekdh12345/docker'
+        dockerHubRegistry = 'rlaekdh12345/rlagoddn'
         dockerHubRegistryCredential = 'docker-hub'
         githubCredential = 'github'
         k8sRepoUrl = 'https://github.com/kdzcvrrttyfd/k8s-manifests.git'
