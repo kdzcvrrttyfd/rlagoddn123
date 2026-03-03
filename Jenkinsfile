@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        dockerHubRegistry = 'rlaekdh12345/docker'
-        dockerHubRegistryCredential = 'docker-hub'
-        githubCredential = 'github'
+        dockerHubRegistry = 'rlaekdh12345/rlagoddn'
+        dockerHubRegistryCredential = 'rlagoddn123'
+        githubCredential = 'rlagoddn'
         k8sRepoUrl = 'https://github.com/kdzcvrrttyfd/k8s-manifests.git'
         BUILD_NUMBER = "${currentBuild.number}"
     }
@@ -73,7 +73,7 @@ pipeline {
                     #!/bin/bash
                     git config --global user.email 'rlaekdh12345@gmail.com'
                     git config --global user.name 'kdzcvrrttyfd'
-                    sed -i "s/docker:.*$/docker:${BUILD_NUMBER}/" deployment.yaml
+                    sed -i "s/rlagoddn:.*$/rlagoddn:${BUILD_NUMBER}/" deployment.yaml
                     git add deployment.yaml
                     git commit -m '[UPDATE] k8s ${BUILD_NUMBER} image versioning'
                     '''
