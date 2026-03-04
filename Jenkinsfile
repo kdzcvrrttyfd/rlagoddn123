@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         dockerHubRegistry = 'rlaekdh12345/rlagoddn'
-        dockerHubRegistryCredential = 'rlagoddn'
+        dockerHubRegistryCredential = 'rlagoddn123'
         githubCredential = 'rlagoddn'
         k8sRepoUrl = 'https://github.com/kdzcvrrttyfd/k8s-manifests.git'
         BUILD_NUMBER = "${currentBuild.number}"
